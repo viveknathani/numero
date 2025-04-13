@@ -8,4 +8,4 @@ run-dev:
 	export LOG_LEVEL=DEBUG && make build && ./bin/numero
 
 run:
-	export LOG_LEVEL=DEBUG && make build && ./bin/numero
+	export LOG_LEVEL=INFO && make build && ./bin/numero
