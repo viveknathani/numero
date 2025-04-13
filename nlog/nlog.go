@@ -10,7 +10,8 @@ import (
 func Info(args ...any) {
 	logLevel := os.Getenv("LOG_LEVEL")
 	if logLevel == "INFO" || logLevel == "DEBUG" {
-		logInternal("[INFO]", args...)
+		// we add the extra space here so that the width becomes consistent with DEBUG and ERROR
+		logInternal("[INFO]"+" ", args...)
 	}
 }
 
