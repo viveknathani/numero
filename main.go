@@ -11,5 +11,5 @@ func main() {
 	nlog.Info("hello from numero!")
 	nlog.Debug("hello from numero again!")
 	nlog.Error("hello from numero again!")
-	fmt.Println(nparser.Parse("22*6"))
+	fmt.Println(nparser.Parse("(22+6)*3"))
 }

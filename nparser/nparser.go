@@ -15,18 +15,31 @@ type parser struct {
 // We start with a vanilla version that supports sum and product operations over just numbers
 // Sample input: 2*6+4*5
 func Parse(expression string) (float64, error) {
-	sum := 0.0
-
 	internalParser := parser{input: expression, position: 0}
+	return internalParser.run()
+}
+
+func (internalParser *parser) run() (float64, error) {
+	sum := 0.0
 
 	err := internalParser.split('+', func() error {
 		product := 1.0
 		err := internalParser.split('*', func() error {
-			number, err := internalParser.parseNumber()
-			if err != nil {
-				return err
+			if internalParser.peak() == '(' {
+				internalParser.next()
+				internalSum, internalErr := internalParser.run()
+				if internalErr != nil {
+					return internalErr
+				}
+				product *= internalSum
+				internalParser.next()
+			} else {
+				number, err := internalParser.parseNumber()
+				if err != nil {
+					return err
+				}
+				product *= number
 			}
-			product *= number
 			return nil
 		})
 		if err != nil {
