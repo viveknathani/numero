@@ -63,10 +63,25 @@ func (internalParser *parser) next() {
 }
 
 func (internalParser *parser) peak() byte {
+	internalParser.skipWhitespace()
 	if internalParser.position >= len(internalParser.input) {
 		return ' '
 	}
 	return internalParser.input[internalParser.position]
+}
+
+func (internalParser *parser) skipWhitespace() {
+	for {
+		if internalParser.position >= len(internalParser.input) {
+			break
+		}
+
+		if internalParser.input[internalParser.position] == ' ' || internalParser.input[internalParser.position] == '\n' {
+			internalParser.position++
+		} else {
+			break
+		}
+	}
 }
 
 func (internalParser *parser) split(operator byte, callback func() error) error {
