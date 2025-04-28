@@ -1,110 +1,68 @@
 package nparser
 
-import (
-	"strconv"
+import "github.com/viveknathani/numero/nlog"
 
-	"github.com/viveknathani/numero/nlog"
-)
-
-type parser struct {
-	input    string
-	position int
+// Nparser will parse mathematical expressions
+type Nparser struct {
+	operatorList []string
+	expression   string
+	pointer      int
 }
 
-// Parse will go through an expression and parse it mathematically
-// We start with a vanilla version that supports sum and product operations over just numbers
-// Sample input: 2*6+4*5
-func Parse(expression string) (float64, error) {
-	internalParser := parser{input: expression, position: 0}
-	return internalParser.run()
-}
-
-func (internalParser *parser) run() (float64, error) {
-	sum := 0.0
-
-	err := internalParser.split('+', func() error {
-		product := 1.0
-		err := internalParser.split('*', func() error {
-			if internalParser.peak() == '(' {
-				internalParser.next()
-				internalSum, internalErr := internalParser.run()
-				if internalErr != nil {
-					return internalErr
-				}
-				product *= internalSum
-				internalParser.next()
-			} else {
-				number, err := internalParser.parseNumber()
-				if err != nil {
-					return err
-				}
-				product *= number
-			}
-			return nil
-		})
-		if err != nil {
-			nlog.Error(err)
-		}
-		sum += product
-		return nil
-	})
-	if err != nil {
-		nlog.Error(err)
-		return 0, err
-	}
-
-	return sum, nil
-}
-
-func (internalParser *parser) next() {
-	if internalParser.position < len(internalParser.input) {
-		internalParser.position++
+// New returns a new Nparser
+func New(expression string) *Nparser {
+	return &Nparser{
+		operatorList: []string{"+", "-", "*", "/", "(", ")", "^"},
+		expression:   expression,
+		pointer:      0,
 	}
 }
 
-func (internalParser *parser) peak() byte {
-	internalParser.skipWhitespace()
-	if internalParser.position >= len(internalParser.input) {
-		return ' '
-	}
-	return internalParser.input[internalParser.position]
-}
+// Run runs the parser
+func (np *Nparser) Run() {
 
-func (internalParser *parser) skipWhitespace() {
 	for {
-		if internalParser.position >= len(internalParser.input) {
+		token, ok := np.next()
+		if !ok {
 			break
 		}
-
-		if internalParser.input[internalParser.position] == ' ' || internalParser.input[internalParser.position] == '\n' {
-			internalParser.position++
-		} else {
-			break
-		}
+		nlog.Debug(token)
 	}
 }
 
-func (internalParser *parser) split(operator byte, callback func() error) error {
-	for {
-		err := callback()
-		if err != nil {
-			return err
-		}
-		if internalParser.peak() == operator {
-			internalParser.next()
-		} else {
-			break
-		}
+func (np *Nparser) next() (string, bool) {
+	for np.pointer < len(np.expression) &&
+		np.expression[np.pointer] == ' ' {
+		np.pointer++
 	}
 
-	return nil
+	if np.pointer >= len(np.expression) {
+		return "", false
+	}
+
+	token := string(np.expression[np.pointer])
+
+	if np.isAnOperator(token) {
+		np.pointer++
+		return token, true
+	}
+
+	startIndex := np.pointer
+	for np.pointer < len(np.expression) &&
+		(np.expression[np.pointer] >= '0' &&
+			np.expression[np.pointer] <= '9' ||
+			np.expression[np.pointer] == '.') {
+		np.pointer++
+	}
+
+	return np.expression[startIndex:np.pointer], true
 }
 
-func (internalParser *parser) parseNumber() (float64, error) {
-	start := internalParser.position
-	for internalParser.position < len(internalParser.input) && (internalParser.input[internalParser.position] >= '0' && internalParser.input[internalParser.position] <= '9' || internalParser.input[internalParser.position] == '.') {
-		internalParser.position++
+func (np *Nparser) isAnOperator(token string) bool {
+	for _, op := range np.operatorList {
+		if token == op {
+			return true
+		}
 	}
-	numStr := internalParser.input[start:internalParser.position]
-	return strconv.ParseFloat(numStr, 64)
+	return false
 }
