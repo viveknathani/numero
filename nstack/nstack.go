@@ -27,3 +27,13 @@ func (nstack *Nstack[T]) Pop() (T, bool) {
 	nstack.elements = nstack.elements[:len(nstack.elements)-1]
 	return element, true
 }
+
+// Top returns the top most element from the stack
+func (nstack *Nstack[T]) Top() (T, bool) {
+	if len(nstack.elements) == 0 {
+		var zero T
+		return zero, false
+	}
+	element := nstack.elements[len(nstack.elements)-1]
+	return element, true
+}
