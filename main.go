@@ -10,6 +10,6 @@ func main() {
 	nlog.Debug("hello from numero again!")
 	nlog.Error("hello from numero again!")
 
-	parser := nparser.New("23/46")
+	parser := nparser.New("(23/46)+(45*76)/4")
 	nlog.Debug(parser.Run())
 }

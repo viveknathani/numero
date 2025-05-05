@@ -3,6 +3,7 @@ package nparser
 import (
 	"strconv"
 
+	"github.com/viveknathani/numero/nlog"
 	"github.com/viveknathani/numero/nstack"
 )
 
@@ -30,6 +31,7 @@ func (np *Nparser) Run() float64 {
 
 	for {
 		token, ok := np.next()
+		nlog.Debug(token)
 		if !ok {
 			break
 		}
@@ -38,6 +40,9 @@ func (np *Nparser) Run() float64 {
 			for {
 				topMostOperator, allOk := operatorStack.Top()
 				if !allOk {
+					break
+				}
+				if topMostOperator == "(" {
 					break
 				}
 				if np.shouldPop(token, topMostOperator) {
@@ -49,6 +54,21 @@ func (np *Nparser) Run() float64 {
 			}
 			operatorStack.Push(token)
 
+		} else if token == "(" {
+			operatorStack.Push(token)
+		} else if token == ")" {
+			for {
+				topMostOperator, allOk := operatorStack.Top()
+				if !allOk {
+					break
+				}
+				if topMostOperator == "(" {
+					operatorStack.Pop()
+					break
+				}
+				operatorStack.Pop()
+				outputQueue = append(outputQueue, topMostOperator)
+			}
 		} else {
 			outputQueue = append(outputQueue, token)
 		}
@@ -77,7 +97,7 @@ func (np *Nparser) next() (string, bool) {
 
 	token := string(np.expression[np.pointer])
 
-	if np.isAnOperator(token) {
+	if np.isAnOperator(token) || token == "(" || token == ")" {
 		np.pointer++
 		return token, true
 	}
