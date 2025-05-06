@@ -1,6 +1,7 @@
 package nparser
 
 import (
+	"math"
 	"strconv"
 
 	"github.com/viveknathani/numero/nstack"
@@ -12,6 +13,7 @@ type Nparser struct {
 	expression   string
 	pointer      int
 	variables    map[string]float64
+	functions    map[string]func(float64) float64
 }
 
 // New returns a new Nparser
@@ -21,6 +23,18 @@ func New(expression string) *Nparser {
 		expression:   expression,
 		pointer:      0,
 		variables:    make(map[string]float64),
+		functions: map[string]func(float64) float64{
+			"sin":   math.Sin,
+			"cos":   math.Cos,
+			"tan":   math.Tan,
+			"cosec": func(f float64) float64 { return 1.0 / math.Sin(f) },
+			"sec":   func(f float64) float64 { return 1.0 / math.Cos(f) },
+			"cot":   func(f float64) float64 { return 1.0 / math.Tan(f) },
+			"log":   math.Log,
+			"log10": math.Log10,
+			"log2":  math.Log2,
+			"sqrt":  math.Sqrt,
+		},
 	}
 }
 
@@ -74,6 +88,8 @@ func (np *Nparser) Run() float64 {
 				operatorStack.Pop()
 				outputQueue = append(outputQueue, topMostOperator)
 			}
+		} else if _, isFunction := np.functions[token]; isFunction {
+			operatorStack.Push(token)
 		} else {
 			outputQueue = append(outputQueue, token)
 		}
@@ -122,7 +138,10 @@ func (np *Nparser) next() (string, bool) {
 	if (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') {
 		startIndex := np.pointer
 		for np.pointer < len(np.expression) &&
-			((np.expression[np.pointer] >= 'a' && np.expression[np.pointer] <= 'z') || (np.expression[np.pointer] >= 'A' && np.expression[np.pointer] <= 'Z')) {
+			((np.expression[np.pointer] >= 'a' && np.expression[np.pointer] <= 'z') ||
+				(np.expression[np.pointer] >= 'A' && np.expression[np.pointer] <= 'Z') ||
+				(np.expression[np.pointer] >= '0' && np.expression[np.pointer] <= '9') ||
+				(np.expression[np.pointer] == '.')) {
 			np.pointer++
 		}
 		return np.expression[startIndex:np.pointer], true
@@ -154,6 +173,16 @@ func (np *Nparser) eval(rpn []string) float64 {
 	stack := nstack.New[float64]()
 
 	for _, token := range rpn {
+		if fn, isFunc := np.functions[token]; isFunc {
+			arg, ok := stack.Pop()
+			if !ok {
+				panic("invalid expression: not enough operands for function: " + token)
+			}
+			result := fn(arg)
+			stack.Push(result)
+			continue
+		}
+
 		if np.isAnOperator(token) {
 			// Pop two numbers (b first, then a)
 			b, ok1 := stack.Pop()

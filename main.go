@@ -10,7 +10,7 @@ func main() {
 	nlog.Debug("hello from numero again!")
 	nlog.Error("hello from numero again!")
 
-	parser := nparser.New("(23/46)*x+34")
+	parser := nparser.New("log10(100)")
 	parser.SetVariable("x", 2)
 	nlog.Debug(parser.Run())
 }
