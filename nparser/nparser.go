@@ -19,7 +19,7 @@ type Nparser struct {
 // New returns a new Nparser
 func New(expression string) *Nparser {
 	return &Nparser{
-		operatorList: []string{"+", "-", "*", "/", "u-"},
+		operatorList: []string{"+", "-", "*", "/", "^", "u-"},
 		expression:   expression,
 		pointer:      0,
 		variables:    make(map[string]float64),
@@ -174,8 +174,22 @@ func (np *Nparser) isAnOperator(token string) bool {
 }
 
 func (np *Nparser) shouldPop(o1, o2 string) bool {
-	prec := map[string]int{"+": 1, "-": 1, "*": 2, "/": 2, "u-": 3}
-	leftAssoc := map[string]bool{"+": true, "-": true, "*": true, "/": true, "u-": false}
+	prec := map[string]int{
+		"+":  1,
+		"-":  1,
+		"*":  2,
+		"/":  2,
+		"^":  4,
+		"u-": 3,
+	}
+	leftAssoc := map[string]bool{
+		"+":  true,
+		"-":  true,
+		"*":  true,
+		"/":  true,
+		"^":  false,
+		"u-": false,
+	}
 
 	p1 := prec[o1]
 	p2 := prec[o2]
@@ -224,9 +238,12 @@ func (np *Nparser) eval(rpn []string) float64 {
 				res = a * b
 			case "/":
 				res = a / b
+			case "^":
+				res = math.Pow(a, b)
 			default:
 				panic("unsupported operator: " + token)
 			}
+
 			stack.Push(res)
 		} else {
 			// Convert to float and push
