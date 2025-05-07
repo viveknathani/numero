@@ -9,11 +9,12 @@ import (
 
 // Nparser will parse mathematical expressions
 type Nparser struct {
-	operatorList []string
-	expression   string
-	pointer      int
-	variables    map[string]float64
-	functions    map[string]func(float64) float64
+	operatorList  []string
+	expression    string
+	pointer       int
+	variables     map[string]float64
+	functions     map[string]func(...float64) float64
+	functionArity map[string]int
 }
 
 // New returns a new Nparser
@@ -23,17 +24,49 @@ func New(expression string) *Nparser {
 		expression:   expression,
 		pointer:      0,
 		variables:    make(map[string]float64),
-		functions: map[string]func(float64) float64{
-			"sin":   math.Sin,
-			"cos":   math.Cos,
-			"tan":   math.Tan,
-			"cosec": func(f float64) float64 { return 1.0 / math.Sin(f) },
-			"sec":   func(f float64) float64 { return 1.0 / math.Cos(f) },
-			"cot":   func(f float64) float64 { return 1.0 / math.Tan(f) },
-			"log":   math.Log,
-			"log10": math.Log10,
-			"log2":  math.Log2,
-			"sqrt":  math.Sqrt,
+		functions: map[string]func(...float64) float64{
+			"sin":   func(args ...float64) float64 { return math.Sin(args[0]) },
+			"cos":   func(args ...float64) float64 { return math.Cos(args[0]) },
+			"tan":   func(args ...float64) float64 { return math.Tan(args[0]) },
+			"cosec": func(args ...float64) float64 { return 1.0 / math.Sin(args[0]) },
+			"sec":   func(args ...float64) float64 { return 1.0 / math.Cos(args[0]) },
+			"cot":   func(args ...float64) float64 { return 1.0 / math.Tan(args[0]) },
+			"log":   func(args ...float64) float64 { return math.Log(args[0]) },
+			"log10": func(args ...float64) float64 { return math.Log10(args[0]) },
+			"log2":  func(args ...float64) float64 { return math.Log2(args[0]) },
+			"sqrt":  func(args ...float64) float64 { return math.Sqrt(args[0]) },
+			"max": func(args ...float64) float64 {
+				if len(args) != 2 {
+					panic("max expects 2 args")
+				}
+				if args[0] > args[1] {
+					return args[0]
+				}
+				return args[1]
+			},
+			"min": func(args ...float64) float64 {
+				if len(args) != 2 {
+					panic("max expects 2 args")
+				}
+				if args[0] < args[1] {
+					return args[0]
+				}
+				return args[1]
+			},
+		},
+		functionArity: map[string]int{
+			"sin":   1,
+			"cos":   1,
+			"tan":   1,
+			"cosec": 1,
+			"sec":   1,
+			"cot":   1,
+			"sqrt":  1,
+			"log":   1,
+			"log10": 1,
+			"log2":  1,
+			"max":   2,
+			"min":   2,
 		},
 	}
 }
@@ -64,6 +97,22 @@ func (np *Nparser) Run() float64 {
 			if isUnary {
 				token = "u-"
 			}
+		}
+
+		if token == "," {
+			// Pop operators until "("
+			for {
+				topMostOperator, allOk := operatorStack.Top()
+				if !allOk {
+					panic("misplaced comma or mismatched parentheses")
+				}
+				if topMostOperator == "(" {
+					break
+				}
+				operatorStack.Pop()
+				outputQueue = append(outputQueue, topMostOperator)
+			}
+			continue
 		}
 
 		if np.isAnOperator(token) || token == "u-" {
@@ -133,7 +182,7 @@ func (np *Nparser) next() (string, bool) {
 	ch := np.expression[np.pointer]
 
 	// Operator or parenthesis
-	if np.isAnOperator(string(ch)) || ch == '(' || ch == ')' {
+	if np.isAnOperator(string(ch)) || ch == '(' || ch == ')' || ch == ',' {
 		np.pointer++
 		return string(ch), true
 	}
@@ -211,11 +260,16 @@ func (np *Nparser) eval(rpn []string) float64 {
 		}
 
 		if fn, isFunc := np.functions[token]; isFunc {
-			arg, ok := stack.Pop()
-			if !ok {
-				panic("invalid expression: not enough operands for function: " + token)
+			arity := np.functionArity[token]
+			args := make([]float64, arity)
+			for i := arity - 1; i >= 0; i-- { // reverse order
+				arg, ok := stack.Pop()
+				if !ok {
+					panic("not enough operands for function: " + token)
+				}
+				args[i] = arg
 			}
-			result := fn(arg)
+			result := fn(args...)
 			stack.Push(result)
 			continue
 		}
