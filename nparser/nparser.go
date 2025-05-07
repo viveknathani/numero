@@ -19,7 +19,7 @@ type Nparser struct {
 // New returns a new Nparser
 func New(expression string) *Nparser {
 	return &Nparser{
-		operatorList: []string{"+", "-", "*", "/"},
+		operatorList: []string{"+", "-", "*", "/", "u-"},
 		expression:   expression,
 		pointer:      0,
 		variables:    make(map[string]float64),
@@ -48,13 +48,25 @@ func (np *Nparser) Run() float64 {
 
 	outputQueue := make([]string, 0)
 	operatorStack := nstack.New[string]()
+	prevToken := ""
 
 	for {
 		token, ok := np.next()
 		if !ok {
 			break
 		}
-		if np.isAnOperator(token) {
+
+		if token == "-" {
+			isUnary := false
+			if prevToken == "" || prevToken == "(" || np.isAnOperator(prevToken) {
+				isUnary = true
+			}
+			if isUnary {
+				token = "u-"
+			}
+		}
+
+		if np.isAnOperator(token) || token == "u-" {
 
 			for {
 				topMostOperator, allOk := operatorStack.Top()
@@ -93,6 +105,8 @@ func (np *Nparser) Run() float64 {
 		} else {
 			outputQueue = append(outputQueue, token)
 		}
+
+		prevToken = token
 	}
 
 	for {
@@ -160,8 +174,8 @@ func (np *Nparser) isAnOperator(token string) bool {
 }
 
 func (np *Nparser) shouldPop(o1, o2 string) bool {
-	prec := map[string]int{"+": 1, "-": 1, "*": 2, "/": 2}
-	leftAssoc := map[string]bool{"+": true, "-": true, "*": true, "/": true}
+	prec := map[string]int{"+": 1, "-": 1, "*": 2, "/": 2, "u-": 3}
+	leftAssoc := map[string]bool{"+": true, "-": true, "*": true, "/": true, "u-": false}
 
 	p1 := prec[o1]
 	p2 := prec[o2]
@@ -173,6 +187,15 @@ func (np *Nparser) eval(rpn []string) float64 {
 	stack := nstack.New[float64]()
 
 	for _, token := range rpn {
+		if token == "u-" {
+			a, ok := stack.Pop()
+			if !ok {
+				panic("invalid expression: unary minus missing operand")
+			}
+			stack.Push(-a)
+			continue
+		}
+
 		if fn, isFunc := np.functions[token]; isFunc {
 			arg, ok := stack.Pop()
 			if !ok {
