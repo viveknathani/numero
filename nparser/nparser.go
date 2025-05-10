@@ -12,7 +12,7 @@ type Nparser struct {
 	operatorList  []string
 	expression    string
 	pointer       int
-	variables     map[string]float64
+	variables     Variables
 	functions     map[string]func(...float64) float64
 	functionArity map[string]int
 }
@@ -23,7 +23,7 @@ func New(expression string) *Nparser {
 		operatorList: []string{"+", "-", "*", "/", "^", "u-"},
 		expression:   expression,
 		pointer:      0,
-		variables:    make(map[string]float64),
+		variables:    make(Variables),
 		functions: map[string]func(...float64) float64{
 			"sin":   func(args ...float64) float64 { return math.Sin(args[0]) },
 			"cos":   func(args ...float64) float64 { return math.Cos(args[0]) },
