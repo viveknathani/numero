@@ -5,6 +5,13 @@ type NQueue[T any] struct {
 	elements []T
 }
 
+// New creates a new queue
+func New[T any]() *NQueue[T] {
+	return &NQueue[T]{
+		elements: make([]T, 0),
+	}
+}
+
 // Enqueue adds an element to the end of the queue
 func (nqueue *NQueue[T]) Enqueue(element T) {
 	nqueue.elements = append(nqueue.elements, element)
