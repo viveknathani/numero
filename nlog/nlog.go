@@ -1,35 +1,64 @@
 package nlog
 
 import (
+	"bufio"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 )
 
-// Info should be used for informational logging.
+// level is controlled by LOG_LEVEL env var
+// valid values: DEBUG, INFO, ERROR (default: INFO)
+var level = getLogLevel()
+
+// logger is the internal logger with mutex protection and buffered writes
+var logger = struct {
+	sync.Mutex
+	buf *bufio.Writer
+}{
+	buf: bufio.NewWriter(os.Stdout),
+}
+
+func getLogLevel() string {
+	level := os.Getenv("LOG_LEVEL")
+	if level == "" {
+		return "INFO"
+	}
+	return level
+}
+
+// Info logs informational messages
 func Info(args ...any) {
-	logLevel := os.Getenv("LOG_LEVEL")
-	if logLevel == "INFO" || logLevel == "DEBUG" {
-		// we add the extra space here so that the width becomes consistent with DEBUG and ERROR
-		logInternal("[INFO]"+" ", args...)
+	if level == "INFO" || level == "DEBUG" {
+		log("[INFO] ", args...)
 	}
 }
 
-// Debug should be used for debugging level logging.
+// Debug logs debug messages
 func Debug(args ...any) {
-	if os.Getenv("LOG_LEVEL") == "DEBUG" {
-		logInternal("[DEBUG]", args...)
+	if level == "DEBUG" {
+		log("[DEBUG]", args...)
 	}
 }
 
-// Error should be used for error logging. Will be emitted always.
+// Error logs error messages (always logged)
 func Error(args ...any) {
-	logInternal("[ERROR]", args...)
+	log("[ERROR]", args...)
 }
 
-// logInternal is the internal implementation of numero's lightweight logger
-func logInternal(level string, args ...any) {
-	currentTime := time.Now()
-	prefix := []any{level, currentTime.Format(time.DateTime)}
-	fmt.Println(append(prefix, args...)...)
+// log is the internal logging function
+func log(level string, args ...any) {
+	logger.Lock()
+	defer logger.Unlock()
+
+	// pre-allocate slice with capacity for prefix + args
+	out := make([]any, 0, 2+len(args))
+	out = append(out, level, time.Now().Format(time.DateTime))
+	out = append(out, args...)
+
+	fmt.Fprintln(logger.buf, out...)
+
+	// ensure logs are written immediately
+	logger.buf.Flush()
 }
