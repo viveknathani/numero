@@ -283,8 +283,8 @@ func (np *Nparser) eval(rpn *nqueue.NQueue[Token]) (float64, error) {
 	stack := nstack.New[float64]()
 
 	for {
-		token, ok := rpn.Dequeue()
-		if !ok {
+		token, err := rpn.Dequeue()
+		if err != nil {
 			break
 		}
 

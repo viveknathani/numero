@@ -18,24 +18,24 @@ func (nqueue *NQueue[T]) Enqueue(element T) {
 }
 
 // Dequeue removes an element from the front of the queue
-func (nqueue *NQueue[T]) Dequeue() (T, bool) {
+func (nqueue *NQueue[T]) Dequeue() (T, error) {
 	if len(nqueue.elements) == 0 {
 		var zero T
-		return zero, false
+		return zero, &ErrEmptyQueue{}
 	}
 	element := nqueue.elements[0]
 	nqueue.elements = nqueue.elements[1:]
-	return element, true
+	return element, nil
 }
 
 // Peek returns an element from the front of the queue
-func (nqueue *NQueue[T]) Peek() (T, bool) {
+func (nqueue *NQueue[T]) Peek() (T, error) {
 	if len(nqueue.elements) == 0 {
 		var zero T
-		return zero, false
+		return zero, &ErrEmptyQueue{}
 	}
 	element := nqueue.elements[0]
-	return element, true
+	return element, nil
 }
 
 // IsEmpty checks if queue is empty
