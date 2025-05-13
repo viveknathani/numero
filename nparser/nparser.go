@@ -216,8 +216,8 @@ func (np *Nparser) Run() (float64, error) {
 
 		if token == COMMA {
 			for {
-				topMostOperator, allOk := operatorStack.Top()
-				if !allOk {
+				topMostOperator, err := operatorStack.Top()
+				if err != nil {
 					return 0, errors.New("misplaced comma or mismatched parentheses")
 				}
 				if topMostOperator == LPAREN {
@@ -229,8 +229,8 @@ func (np *Nparser) Run() (float64, error) {
 			continue
 		} else if np.isAnOperator(token) {
 			for {
-				topMostOperator, allOk := operatorStack.Top()
-				if !allOk {
+				topMostOperator, err := operatorStack.Top()
+				if err != nil {
 					break
 				}
 				if topMostOperator == LPAREN {
@@ -248,8 +248,8 @@ func (np *Nparser) Run() (float64, error) {
 			operatorStack.Push(token)
 		} else if token == RPAREN {
 			for {
-				topMostOperator, allOk := operatorStack.Top()
-				if !allOk {
+				topMostOperator, err := operatorStack.Top()
+				if err != nil {
 					return 0, errors.New("mismatched parentheses")
 				}
 				if topMostOperator == LPAREN {
@@ -269,8 +269,8 @@ func (np *Nparser) Run() (float64, error) {
 	}
 
 	for {
-		topMostOperator, allOk := operatorStack.Pop()
-		if !allOk {
+		topMostOperator, err := operatorStack.Pop()
+		if err != nil {
 			break
 		}
 		outputQueue.Enqueue(topMostOperator)
@@ -289,8 +289,8 @@ func (np *Nparser) eval(rpn *nqueue.NQueue[Token]) (float64, error) {
 		}
 
 		if token == UMINUS {
-			a, ok := stack.Pop()
-			if !ok {
+			a, err := stack.Pop()
+			if err != nil {
 				return 0, errors.New("invalid expression: unary minus missing operand")
 			}
 			stack.Push(-a)
@@ -301,8 +301,8 @@ func (np *Nparser) eval(rpn *nqueue.NQueue[Token]) (float64, error) {
 			arity := fn.arity
 			args := make([]float64, arity)
 			for i := arity - 1; i >= 0; i-- {
-				arg, ok := stack.Pop()
-				if !ok {
+				arg, err := stack.Pop()
+				if err != nil {
 					return 0, errors.New("not enough operands for function: " + string(token))
 				}
 				args[i] = arg
@@ -314,9 +314,9 @@ func (np *Nparser) eval(rpn *nqueue.NQueue[Token]) (float64, error) {
 
 		if np.isAnOperator(token) {
 			// pop two numbers (b first, then a)
-			b, ok1 := stack.Pop()
-			a, ok2 := stack.Pop()
-			if !ok1 || !ok2 {
+			b, err1 := stack.Pop()
+			a, err2 := stack.Pop()
+			if err1 != nil || err2 != nil {
 				return 0, errors.New("invalid expression: not enough operands")
 			}
 
@@ -352,8 +352,8 @@ func (np *Nparser) eval(rpn *nqueue.NQueue[Token]) (float64, error) {
 	}
 
 	// final result
-	result, ok := stack.Pop()
-	if !ok {
+	result, err := stack.Pop()
+	if err != nil {
 		return 0, errors.New("invalid expression: empty stack at the end")
 	}
 

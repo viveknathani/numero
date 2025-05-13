@@ -18,22 +18,22 @@ func (nstack *Nstack[T]) Push(element T) {
 }
 
 // Pop removes the top most element from the stack and returns it
-func (nstack *Nstack[T]) Pop() (T, bool) {
+func (nstack *Nstack[T]) Pop() (T, error) {
 	if len(nstack.elements) == 0 {
 		var zero T
-		return zero, false
+		return zero, &ErrEmptyStack{}
 	}
 	element := nstack.elements[len(nstack.elements)-1]
 	nstack.elements = nstack.elements[:len(nstack.elements)-1]
-	return element, true
+	return element, nil
 }
 
 // Top returns the top most element from the stack
-func (nstack *Nstack[T]) Top() (T, bool) {
+func (nstack *Nstack[T]) Top() (T, error) {
 	if len(nstack.elements) == 0 {
 		var zero T
-		return zero, false
+		return zero, &ErrEmptyStack{}
 	}
 	element := nstack.elements[len(nstack.elements)-1]
-	return element, true
+	return element, nil
 }
