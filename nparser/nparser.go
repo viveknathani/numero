@@ -96,16 +96,10 @@ var functionList = map[string]FunctionDesc{
 	"log2":  {arity: 1, fn: func(args ...float64) float64 { return math.Log2(args[0]) }},
 	"sqrt":  {arity: 1, fn: func(args ...float64) float64 { return math.Sqrt(args[0]) }},
 	"max": {arity: 2, fn: func(args ...float64) float64 {
-		if args[0] > args[1] {
-			return args[0]
-		}
-		return args[1]
+		return math.Max(args[0], args[1])
 	}},
 	"min": {arity: 2, fn: func(args ...float64) float64 {
-		if args[0] < args[1] {
-			return args[0]
-		}
-		return args[1]
+		return math.Min(args[0], args[1])
 	}},
 }
 
@@ -129,6 +123,7 @@ func (np *Nparser) SetVariable(name string, value float64) {
 	np.variables[name] = value
 }
 
+// isAnOperator checks if a token is an operator
 func (np *Nparser) isAnOperator(token Token) bool {
 	for _, op := range operatorList {
 		if token == Token(op) {
@@ -138,42 +133,35 @@ func (np *Nparser) isAnOperator(token Token) bool {
 	return false
 }
 
-func (np *Nparser) next() (Token, bool) {
+// next returns the next token, whether it was a valid token, and an error if any
+func (np *Nparser) next() (Token, bool, error) {
 
-	// deal with spaces
-	for np.pointer < len(np.expression) &&
-		np.expression[np.pointer] == ' ' {
-		np.pointer++
-	}
+	np.skipSpaces()
 
-	// end of expression
-	if np.pointer >= len(np.expression) {
-		return "", false
+	if np.isEndOfExpression() {
+		return "", false, nil
 	}
 
 	ch := np.expression[np.pointer]
 
-	// if operator or parenthesis, return it
 	if np.isAnOperator(Token(ch)) ||
 		string(ch) == LPAREN ||
 		string(ch) == RPAREN ||
 		string(ch) == COMMA {
 		np.pointer++
-		return Token(ch), true
+		return Token(ch), true, nil
 	}
 
-	// if number (digits, optional '.')
-	if (ch >= '0' && ch <= '9') || ch == '.' {
+	if np.isPartOfNumber(ch) {
 		startIndex := np.pointer
 		for np.pointer < len(np.expression) &&
 			((np.expression[np.pointer] >= '0' && np.expression[np.pointer] <= '9') || np.expression[np.pointer] == '.') {
 			np.pointer++
 		}
-		return Token(np.expression[startIndex:np.pointer]), true
+		return Token(np.expression[startIndex:np.pointer]), true, nil
 	}
 
-	// if variable (letters: a-z, A-Z)
-	if (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') {
+	if np.isStartOfVariable(ch) {
 		startIndex := np.pointer
 		for np.pointer < len(np.expression) &&
 			((np.expression[np.pointer] >= 'a' &&
@@ -185,12 +173,35 @@ func (np *Nparser) next() (Token, bool) {
 				(np.expression[np.pointer] == '.')) {
 			np.pointer++
 		}
-		return Token(np.expression[startIndex:np.pointer]), true
+		return Token(np.expression[startIndex:np.pointer]), true, nil
 	}
 
-	panic("unexpected character: " + string(ch))
+	return "", false, errors.New("unexpected character: " + string(ch))
 }
 
+// skipSpaces skips all spaces
+func (np *Nparser) skipSpaces() {
+	for np.pointer < len(np.expression) && np.expression[np.pointer] == ' ' {
+		np.pointer++
+	}
+}
+
+// isEndOfExpression checks if the pointer is at the end of the expression
+func (np *Nparser) isEndOfExpression() bool {
+	return np.pointer >= len(np.expression)
+}
+
+// isPartOfNumber checks if the character is part of a number
+func (np *Nparser) isPartOfNumber(ch byte) bool {
+	return (ch >= '0' && ch <= '9') || ch == '.'
+}
+
+// isStartOfVariable checks if the character is the start of a variable
+func (np *Nparser) isStartOfVariable(ch byte) bool {
+	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')
+}
+
+// shouldPop checks if the second operator should be popped from the stack
 func (np *Nparser) shouldPop(o1, o2 Operator) bool {
 	return (precedence[o2] > precedence[o1]) || (precedence[o2] == precedence[o1] && !isLeftAssociative[o1])
 }
@@ -203,7 +214,10 @@ func (np *Nparser) Run() (float64, error) {
 	operatorStack := nstack.New[Token]()
 
 	for {
-		token, ok := np.next()
+		token, ok, err := np.next()
+		if err != nil {
+			return 0, err
+		}
 		if !ok {
 			break
 		}
