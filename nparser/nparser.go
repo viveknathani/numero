@@ -1,7 +1,7 @@
 package nparser
 
 import (
-	"errors"
+
 	"math"
 	"strconv"
 
@@ -176,7 +176,7 @@ func (np *Nparser) next() (Token, bool, error) {
 		return Token(np.expression[startIndex:np.pointer]), true, nil
 	}
 
-	return "", false, errors.New("unexpected character: " + string(ch))
+	return "", false, ErrUnexpectedChar{Char: ch}
 }
 
 // skipSpaces skips all spaces
@@ -232,7 +232,7 @@ func (np *Nparser) Run() (float64, error) {
 			for {
 				topMostOperator, err := operatorStack.Top()
 				if err != nil {
-					return 0, errors.New("misplaced comma or mismatched parentheses")
+					return 0, ErrMisplacedComma{}
 				}
 				if topMostOperator == LPAREN {
 					break
@@ -264,7 +264,7 @@ func (np *Nparser) Run() (float64, error) {
 			for {
 				topMostOperator, err := operatorStack.Top()
 				if err != nil {
-					return 0, errors.New("mismatched parentheses")
+					return 0, ErrMismatchedParentheses{}
 				}
 				if topMostOperator == LPAREN {
 					operatorStack.Pop()
@@ -305,7 +305,7 @@ func (np *Nparser) eval(rpn *nqueue.NQueue[Token]) (float64, error) {
 		if token == UMINUS {
 			a, err := stack.Pop()
 			if err != nil {
-				return 0, errors.New("invalid expression: unary minus missing operand")
+				return 0, ErrUnaryMinusMissingOperand{}
 			}
 			stack.Push(-a)
 			continue
@@ -317,7 +317,7 @@ func (np *Nparser) eval(rpn *nqueue.NQueue[Token]) (float64, error) {
 			for i := arity - 1; i >= 0; i-- {
 				arg, err := stack.Pop()
 				if err != nil {
-					return 0, errors.New("not enough operands for function: " + string(token))
+					return 0, ErrNotEnoughOperandsForFunction{Function: string(token)}
 				}
 				args[i] = arg
 			}
@@ -331,7 +331,7 @@ func (np *Nparser) eval(rpn *nqueue.NQueue[Token]) (float64, error) {
 			b, err1 := stack.Pop()
 			a, err2 := stack.Pop()
 			if err1 != nil || err2 != nil {
-				return 0, errors.New("invalid expression: not enough operands")
+				return 0, ErrNotEnoughOperands{}
 			}
 
 			var res float64
@@ -347,7 +347,7 @@ func (np *Nparser) eval(rpn *nqueue.NQueue[Token]) (float64, error) {
 			case POW:
 				res = math.Pow(a, b)
 			default:
-				return 0, errors.New("unsupported operator: " + string(token))
+				return 0, ErrUnsupportedOperator{Operator: string(token)}
 			}
 
 			stack.Push(res)
@@ -358,7 +358,7 @@ func (np *Nparser) eval(rpn *nqueue.NQueue[Token]) (float64, error) {
 			} else {
 				val, ok := np.variables[string(token)]
 				if !ok {
-					return 0, errors.New("undefined variable: " + string(token))
+					return 0, ErrUndefinedVariable{Variable: string(token)}
 				}
 				stack.Push(val)
 			}
@@ -368,7 +368,7 @@ func (np *Nparser) eval(rpn *nqueue.NQueue[Token]) (float64, error) {
 	// final result
 	result, err := stack.Pop()
 	if err != nil {
-		return 0, errors.New("invalid expression: empty stack at the end")
+		return 0, ErrEmptyStack{}
 	}
 
 	return result, nil
