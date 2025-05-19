@@ -1,0 +1,20 @@
+meta {
+  name: eval
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/eval
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "expression": "x + sin(max(2, 333))",
+    "variables": {
+      "x": 100
+    }
+  }
+}
