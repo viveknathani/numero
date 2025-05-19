@@ -1,7 +1,6 @@
 package nparser
 
 import (
-
 	"math"
 	"strconv"
 
@@ -203,7 +202,8 @@ func (np *Nparser) isStartOfVariable(ch byte) bool {
 
 // shouldPop checks if the second operator should be popped from the stack
 func (np *Nparser) shouldPop(o1, o2 Operator) bool {
-	return (precedence[o2] > precedence[o1]) || (precedence[o2] == precedence[o1] && !isLeftAssociative[o1])
+	return (precedence[o2] > precedence[o1]) ||
+		(precedence[o2] == precedence[o1] && !isLeftAssociative[o1])
 }
 
 // Run runs the parser

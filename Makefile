@@ -9,3 +9,6 @@ run-dev:
 
 run:
 	export LOG_LEVEL=INFO && make build && ./bin/numero
+
+format:
+	golines -w .
