@@ -7,11 +7,11 @@
 
 `numero` is software for parsing and evaluating mathematical expressions. It is available as a library and as a web service.
 
-### motivation
+## motivation
 
 This project started as an exercise in doing some recreational programming. I always knew about the [shunting yard algorithm](https://en.wikipedia.org/wiki/Shunting_yard_algorithm) but never really got to implement it. Lately, I've been writing a lot of code in Go and decided to just do this.
 
-### usage
+## usage
 
 The library can be used as follows.
 
@@ -56,7 +56,7 @@ curl --request POST \
 }'
 ```
 
-### documentation
+## documentation
 
 **Supported functions**
 - `sin`
@@ -67,6 +67,13 @@ curl --request POST \
 - `sqrt`
 - `max`
 - `min`
+
+**Supported operators**
+- `+`
+- `-`
+- `*`
+- `/`
+- `^`
 
 **API**
 
@@ -88,7 +95,7 @@ Response body:
 }
 ```
 
-### contributing
+## contributing
 
 I am happy to accept pull requests. No hard rules.
 
@@ -106,6 +113,6 @@ make test
 make run-dev
 ```
 
-### acknowledgements
+## acknowledgements
 
 created by Vivek Nathani ([@viveknathani_](https://twitter.com/viveknathani_)), licensed under the [MIT License](./LICENSE).
