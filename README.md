@@ -7,10 +7,6 @@
 
 `numero` is software for parsing and evaluating mathematical expressions. It is available as a library and as a web service.
 
-## motivation
-
-This project started as an exercise in doing some recreational programming. I always knew about the [shunting yard algorithm](https://en.wikipedia.org/wiki/Shunting_yard_algorithm) but never really got to implement it. Lately, I've been writing a lot of code in Go and decided to just do this.
-
 ## usage
 
 The library can be used as follows.
@@ -59,6 +55,7 @@ curl --request POST \
 ## documentation
 
 **Supported functions**
+
 - `sin`
 - `cos`
 - `tan`
@@ -69,6 +66,7 @@ curl --request POST \
 - `min`
 
 **Supported operators**
+
 - `+`
 - `-`
 - `*`
@@ -95,6 +93,25 @@ Response body:
 }
 ```
 
+### benchmarks
+
+This runs a load test for 20 seconds. The test can be found [here](./benchmark/main.go). The tests were run on a 2021 Macbook Pro with an M1 chip.
+
+```bash
+make bench
+```
+| metric       | value   |
+|---------------|---------|
+| total requests| 30878   |
+| successful requests| 30878|
+| failed requests | 688    |
+| connection errors| 688   |
+| invalid responses| 0     |
+| average latency | 1.02 ms|
+| min latency     | 0.06 ms|
+| max latency     | 36.12 ms|
+| requests/second | 1543|
+
 ## contributing
 
 I am happy to accept pull requests. No hard rules.
@@ -112,6 +129,10 @@ make build
 make test
 make run-dev
 ```
+
+## motivation
+
+This project started as an exercise in doing some recreational programming. I always knew about the [shunting yard algorithm](https://en.wikipedia.org/wiki/Shunting_yard_algorithm) but never really got to implement it. Lately, I've been writing a lot of code in Go and decided to just do this.
 
 ## acknowledgements
 

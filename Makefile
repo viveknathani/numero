@@ -12,3 +12,6 @@ run:
 
 format:
 	golines -w .
+
+bench:
+	go run benchmark/main.go

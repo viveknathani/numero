@@ -170,8 +170,7 @@ func main() {
 		BaseURL:       *baseURL,
 	}
 
-	fmt.Printf("starting benchmark with %d concurrent users for %v\n", config.NumConcurrent, config.Duration)
-	fmt.Printf("target URL: %s\n\n", config.BaseURL)
+	fmt.Printf("running benchmark for %v\n", config.Duration)
 
 	stats := runBenchmark(config)
 

@@ -52,38 +52,35 @@ func main() {
 	nlog.Info("hello from numero!")
 
 	PORT := "8084"
-	// Configure Fiber with optimized settings
+
 	app := fiber.New(fiber.Config{
-		Prefork:      true, // Uses multiple processes
-		ServerHeader: "Numero",
+		Prefork:      true,
+		ServerHeader: "numero",
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 5 * time.Second,
 		IdleTimeout:  10 * time.Second,
-		BodyLimit:    4 * 1024,   // 4KB - adjust based on your needs
-		Concurrency:  256 * 1024, // Max concurrent connections
+		BodyLimit:    4 * 1024,
+		Concurrency:  256 * 1024,
 	})
 
-	// Add middlewares
 	app.Use(recover.New())
+
 	app.Use(compress.New(compress.Config{
 		Level: compress.LevelBestSpeed,
 	}))
+
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
 	}))
 
-	// Serve README.md as HTML at root
 	app.Get("/", func(c *fiber.Ctx) error {
-		// Read README.md
 		md, err := os.ReadFile("README.md")
 		if err != nil {
 			return sendStandardResponse(c, fiber.StatusInternalServerError, nil, "failed to read README.md")
 		}
 
-		// Convert markdown to HTML
 		html := markdown.ToHTML(md, nil, nil)
 
-		// Add basic styling with HTML template
 		template := `<!DOCTYPE html>
 			<html>
 			<head>
@@ -117,11 +114,9 @@ func main() {
 	})
 
 	app.Post("/api/v1/eval", func(c *fiber.Ctx) error {
-		// Get request object from pool
 		req := evalPool.Get().(*EvalRequest)
 		defer evalPool.Put(req)
 
-		// Reset request fields
 		req.Expression = ""
 		req.Variables = nil
 
