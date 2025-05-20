@@ -3,10 +3,14 @@ package main
 import (
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/viveknathani/numero/nlog"
 	"github.com/viveknathani/numero/nparser"
 )
@@ -35,19 +39,47 @@ func handle404(c *fiber.Ctx) error {
 	return sendStandardResponse(c, fiber.StatusNotFound, nil, "you seem lost!")
 }
 
+// Pool for reusing request objects
+var evalPool = sync.Pool{
+	New: func() interface{} {
+		return new(EvalRequest)
+	},
+}
+
 func main() {
 	nlog.Info("hello from numero!")
 
 	PORT := "8084"
-	app := fiber.New()
+	// Configure Fiber with optimized settings
+	app := fiber.New(fiber.Config{
+		Prefork:      true, // Uses multiple processes
+		ServerHeader: "Numero",
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 5 * time.Second,
+		IdleTimeout:  10 * time.Second,
+		BodyLimit:    4 * 1024,   // 4KB - adjust based on your needs
+		Concurrency:  256 * 1024, // Max concurrent connections
+	})
 
+	// Add middlewares
+	app.Use(recover.New())
+	app.Use(compress.New(compress.Config{
+		Level: compress.LevelBestSpeed,
+	}))
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
 	}))
 
 	app.Post("/api/v1/eval", func(c *fiber.Ctx) error {
-		var req EvalRequest
-		if err := c.BodyParser(&req); err != nil {
+		// Get request object from pool
+		req := evalPool.Get().(*EvalRequest)
+		defer evalPool.Put(req)
+
+		// Reset request fields
+		req.Expression = ""
+		req.Variables = nil
+
+		if err := c.BodyParser(req); err != nil {
 			return sendStandardResponse(c, fiber.StatusBadRequest, nil, err.Error())
 		}
 
