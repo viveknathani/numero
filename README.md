@@ -1,6 +1,9 @@
 # numero
 
-TODO:[GO REPORT][LICENSE][VERSION]
+[![Go Report Card](https://goreportcard.com/badge/github.com/viveknathani/numero)](https://goreportcard.com/report/github.com/viveknathani/numero) ![test](https://github.com/viveknathani/numero/actions/workflows/test.yaml/badge.svg)
+![Go Version](https://img.shields.io/github/go-mod/go-version/viveknathani/numero)
+![License](https://img.shields.io/github/license/viveknathani/numero)
+![Last Commit](https://img.shields.io/github/last-commit/viveknathani/numero)
 
 `numero` is software for parsing and evaluating mathematical expressions. It is available as a library and as a web service.
 
