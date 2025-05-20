@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"sync"
@@ -11,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gomarkdown/markdown"
 	"github.com/viveknathani/numero/nlog"
 	"github.com/viveknathani/numero/nparser"
 )
@@ -69,6 +71,50 @@ func main() {
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
 	}))
+
+	// Serve README.md as HTML at root
+	app.Get("/", func(c *fiber.Ctx) error {
+		// Read README.md
+		md, err := os.ReadFile("README.md")
+		if err != nil {
+			return sendStandardResponse(c, fiber.StatusInternalServerError, nil, "failed to read README.md")
+		}
+
+		// Convert markdown to HTML
+		html := markdown.ToHTML(md, nil, nil)
+
+		// Add basic styling with HTML template
+		template := `<!DOCTYPE html>
+			<html>
+			<head>
+				<meta charset="utf-8">
+				<meta name="viewport" content="width=device-width, initial-scale=1">
+				<title>numero - Mathematical Expression Parser</title>
+				<style>
+					body { 
+						max-width: 800px; 
+						margin: 40px auto; 
+						padding: 0 20px; 
+						font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; 
+						line-height: 1.5;
+					}
+					pre { 
+						background: #f6f8fa; 
+						padding: 16px; 
+						border-radius: 6px; 
+						overflow-x: auto;
+					}
+					code { font-family: monospace; }
+					a { color: #0366d6; text-decoration: none; }
+					a:hover { text-decoration: underline; }
+				</style>
+			</head>
+			<body>%s</body></html>`
+		styled := []byte(fmt.Sprintf(template, html))
+
+		c.Set("Content-Type", "text/html")
+		return c.Send(styled)
+	})
 
 	app.Post("/api/v1/eval", func(c *fiber.Ctx) error {
 		// Get request object from pool
