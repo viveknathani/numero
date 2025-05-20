@@ -1,35 +1,51 @@
 # numero
 
-numero is a math library for Go. 
+TODO:[GO REPORT][LICENSE][VERSION]
 
-This README is largely a work in progress document. I am writing down my thoughts as I go along.
+`numero` is software for parsing and evaluating mathematical expressions. It is available as a library and as a web service.
 
 ### motivation
 
-I am largely just looking to do some recreational programming. I know that mature math libraries exist, but I want to build one myself and maybe, just maybe, I'll arrive at something useful for everybody else.
+This project started as an exercise in doing some recreational programming. I always knew about the [shunting yard algorithm](https://en.wikipedia.org/wiki/Shunting_yard_algorithm) but never really got to implement it. Lately, I've been writing a lot of code in Go and decided to just do this.
 
-### packages to make
+### usage
 
-1. nlog - logger (TODO)
-2. nrepl - repl (TODO)
-3. nparser - equation parser (TODO)
-4. nplot - graphing (TODO)
-5. nmath - math functions (TODO)
-6. nserver - server (TODO)
-7. nutil - utils (TODO)
-6. nweb - web interface (TODO)
+TODO: write here
 
-### areas to be covered by nmath
+The library can be used as follows:
 
-1. function differentiation
-2. function integration
-3. matrices
-4. vectors
-5. statistics
-6. probability
+```bash
+go get -u github.com/viveknathani/numero
+```
 
-### interface
+```go
 
-All of these packages listed above can act as useful components to be combined with natural language.
+```
 
-To begin with, there can be a web based tool wherein you could input something like: "Solve " and then press "@" which pops up a little menu, you pick "equation" from that menu, write your equation. And the equation parsing does not happen via an AI. It happens via the tools we build. So there is determinism. This could be extended to a usecase where I would want to say "draw y = x". And yes, an AI could do this. But all of it takes tokens, API keys, guardrails and what not. Who wants that? 
+The web service can be consumed as follows:
+
+```bash
+
+```
+
+### contributing
+
+I am happy to accept pull requests. No hard rules.
+
+To set up the project for development, we have the following system requirements:
+
+- git
+- go
+- make
+
+```bash
+git clone https://github.com/viveknathani/numero.git
+cd numero
+make build
+make test
+make run-dev
+```
+
+### acknowledgements
+
+created by Vivek Nathani ([@viveknathani_](https://twitter.com/viveknathani_)), licensed under the [MIT License](./LICENSE).
