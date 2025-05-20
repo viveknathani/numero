@@ -13,22 +13,79 @@ This project started as an exercise in doing some recreational programming. I al
 
 ### usage
 
-TODO: write here
+The library can be used as follows.
 
-The library can be used as follows:
 
+Download it:
 ```bash
 go get -u github.com/viveknathani/numero
 ```
 
+Import it:
 ```go
+import "github.com/viveknathani/numero/nparser"
+``` 
 
+Simple example:
+```go
+expression := "sin(max(2, 3333))"
+parser := nparser.New(expression)
+
+result, err := parser.Run()
+```
+
+Example with variables:
+```go
+expression := "x + y"
+parser := New(expression)
+parser.SetVariable("x", 2)
+parser.SetVariable("y", 45)
+result, err := parser.Run()
 ```
 
 The web service can be consumed as follows:
 
 ```bash
+curl --request POST \
+  --url https://numero.vivekn.dev/api/v1/eval \
+  --data '{
+  "expression": "x + sin(max(2, 333))",
+  "variables": {
+    "x": 100
+  }
+}'
+```
 
+### documentation
+
+**Supported functions**
+- `sin`
+- `cos`
+- `tan`
+- `log`
+- `ln`
+- `sqrt`
+- `max`
+- `min`
+
+**API**
+
+`POST /api/v1/eval`
+
+Request body parameters (JSON):
+
+- `expression`: the expression to evaluate
+- `variables`: a map of variable names to values
+
+Response body:
+
+```json
+{
+  "data": {
+    "result": 99.99117883388611
+  },
+  "message": "success"
+}
 ```
 
 ### contributing
@@ -37,9 +94,9 @@ I am happy to accept pull requests. No hard rules.
 
 To set up the project for development, we have the following system requirements:
 
-- git
-- go
-- make
+1. git
+2. go
+3. make
 
 ```bash
 git clone https://github.com/viveknathani/numero.git
