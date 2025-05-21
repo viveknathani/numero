@@ -94,7 +94,7 @@ Response body:
 
 ### benchmarks
 
-This runs a load test for 20 seconds. The test can be found [here](./benchmark/main.go). The tests were run on a 2021 Macbook Pro with an M1 chip.
+This runs a load test for 20 seconds. The test can be found [here](https://github.com/viveknathani/numero/blob/master/benchmark/main.go). The tests were run on a 2021 Macbook Pro with an M1 chip.
 
 ```bash
 make bench
@@ -135,4 +135,4 @@ This project started as an exercise in doing some recreational programming. I al
 
 ## acknowledgements
 
-created by Vivek Nathani ([@viveknathani_](https://twitter.com/viveknathani_)), licensed under the [MIT License](./LICENSE).
+created by Vivek Nathani ([@viveknathani_](https://twitter.com/viveknathani_)), licensed under the [MIT License](https://github.com/viveknathani/numero/blob/master/LICENSE).
