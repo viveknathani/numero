@@ -43,12 +43,8 @@ The web service can be consumed as follows:
 ```bash
 curl --request POST \
   --url https://numero.vivekn.dev/api/v1/eval \
-  --data '{
-  "expression": "x + sin(max(2, 333))",
-  "variables": {
-    "x": 100
-  }
-}'
+  --header "Content-Type: application/json" \
+  --data '{"expression":"x + sin(max(2, 333))","variables":{"x":100}}'
 ```
 
 ## documentation
